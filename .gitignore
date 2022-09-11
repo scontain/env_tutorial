@@ -1,0 +1,8 @@
+target
+mesh.log
+service.log
+.kube
+service.yaml
+mesh.yaml
+mesh-1.yaml
+mesh-extended.yaml

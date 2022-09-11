@@ -1,0 +1,22 @@
+apiVersion: scone/5.8
+kind: mesh
+
+cas:
+  - name: cas # cas used to store the policy of this application
+    alias: ["image", "security", "access", "attestation"] # use alias in case CAS instance has multiple roles
+    cas_url: edge.scone-cas.cf  # exported as {{cas_cas_cas_url}}
+    tolerance: "--only_for_testing-trust-any --only_for_testing-debug  --only_for_testing-ignore-signer -C -G -S"
+
+policy:
+  namespace: $APP_NAMESPACE   # namespace on CAS instance `cas`
+
+
+# environment variables
+#  - we get these from the images - automatically
+env:
+
+services:
+  - name: flaskredis
+    image: $APP_IMAGE_REPO/python_flask_redis:latest
+  - name: redis
+    image: registry.scontain.com:5050/cicd/redis:latest
