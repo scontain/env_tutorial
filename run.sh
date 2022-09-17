@@ -113,12 +113,12 @@ while [[ "$#" -gt 0 ]]; do
       shift # past argument
       shift || true # past value
       ;;
-    ${debug_flag} | ${debug_short_flag})
-      debug="--mode=debug"
-      shift # past argument
-      ;;
     ${verbose_flag})
       verbose="-vvvvvvvv"
+      shift # past argument
+      ;;
+    ${debug_flag} | ${debug_short_flag})
+      debug="--mode=debug"
       shift # past argument
       ;;
     $help_flag)
@@ -150,7 +150,7 @@ export RELEASE="$release"
 
 echo -e "${BLUE}Checking that we have access to the base container image${NC}"
 
-docker inspect registry.scontain.com:5050/sconectl/sconecli:latest > /dev/null 2> /dev/null || docker pull registry.scontain.com:5050/sconectl/sconecli:latest > /dev/null 2> /dev/null || { 
+docker inspect $SCONECTL_REPO/sconecli:latest > /dev/null 2> /dev/null || docker pull $SCONECTL_REPO/sconecli:latest > /dev/null 2> /dev/null || { 
     echo -e "${RED}You must get access to image `sconectl/sconecli:latest`.${NC}" 
     error_exit "Please send email info@scontain.com to ask for access"
 }
@@ -181,7 +181,7 @@ echo -e "${BLUE} We provide a patch file that we can just append at the end of t
 SCONE="\$SCONE" envsubst < patch.yaml.template > patch.yaml
 cat  mesh-2.yaml patch.yaml > mesh-3.yaml
 
-sconectl apply -f mesh-3.yaml $verbose $debug
+sconectl apply -f mesh-3.yaml  --release "$RELEASE" $verbose $debug
 
 echo -e "${BLUE}Uninstalling application in case it was previously installed:${NC} helm uninstall ${namespace_args} ${RELEASE}"
 echo -e "${BLUE} - this requires that 'kubectl' gives access to a Kubernetes cluster${NC}"
