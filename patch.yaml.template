@@ -1,0 +1,18 @@
+- service: flaskredis
+  env:
+  - name: REDIS_HOST 
+    value: $RELEASE-redis
+  - name: REDIS_PORT 
+    value: 6379
+  - name: "api_host"
+    value: "$RELEASE-python-hello-user"
+  - name: "CLUSTER_DNS_IP"
+    value: "10.96.0.10"
+  - name: "K8sNAMESPACE"
+    value: "$NAMESPACE"
+- service: global
+  env:
+  - name: "redis_server_name" # redis host name - MOVE TO GLOBAL SECTION!!
+    value: "redis"           # default host name - you probably need to adjust this
+  - name: redis_client_name # secrets
+    value: $RELEASE-python-hello-user

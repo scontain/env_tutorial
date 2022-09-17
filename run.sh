@@ -18,7 +18,8 @@ else
 fi
 
 DEFAULT_NAMESPACE="" # Default Kubernetes namespace to use
-APP_IMAGE_REPO=${APP_IMAGE_REPO:=""} # Must be defined!
+export APP_IMAGE_REPO=${APP_IMAGE_REPO:=""} # Must be defined!
+export SCONECTL_REPO=${SCONECTL_REPO:="registry.scontain.com:5050/sconectl"}
 
 # print an error message on an error exit
 trap 'last_command=$current_command; current_command=$BASH_COMMAND' DEBUG
@@ -34,6 +35,9 @@ verbose=""
 release_flag="--release"
 release_short_flag="-r"
 verbose=""
+debug_flag="--debug"
+debug_short_flag="-d"
+debug=""
 
 ns="$DEFAULT_NAMESPACE"
 repo="$APP_IMAGE_REPO"
@@ -52,7 +56,7 @@ usage ()
   echo "    run.sh [$ns_flag <kubernetes-namespace>] [$repo_flag <image repo>] [$release_flag <release name>] [$verbose_flag] [$help_flag]"
   echo ""
   echo ""
-  echo "Builds the application described in service.yaml and mesh.yaml and deploys"
+  echo "Builds the application described in service.yaml.template and mesh.yaml.template and deploys"
   echo "it into your kubernetes cluster."
   echo ""
   echo "Options:"
@@ -68,8 +72,13 @@ usage ()
   echo "                    export APP_IMAGE_REPO=\"$APP_IMAGE_REPO\""
   echo "    $verbose_flag"
   echo "                  Enable verbose output"
+  echo "    $debug_flag | debug_short_flag"
+  echo "                  Create debug image instead of a production image"
   echo "    $help_flag"
   echo "                  Output this usage information and exit."
+  echo ""
+  echo "By default this uses the latest release of the SCONE Elements images. To use image from a different"
+  echo "repository (e.g., a local cache), set SCONECTL_REPO to the repo you want to use instead."
   return
 }
 
@@ -104,6 +113,10 @@ while [[ "$#" -gt 0 ]]; do
       shift # past argument
       shift || true # past value
       ;;
+    ${debug_flag} | ${debug_short_flag})
+      debug="--mode=debug"
+      shift # past argument
+      ;;
     ${verbose_flag})
       verbose="-vvvvvvvv"
       shift # past argument
@@ -130,6 +143,7 @@ if [  "${repo}" == "" ]; then
     error_exit  "Error: You must specify a repo."
 fi
 export APP_IMAGE_REPO="${repo}"
+export RELEASE="$release"
 
 # Check to make sure all prerequisites are installed
 ./check_prerequisites.sh
@@ -152,16 +166,31 @@ echo -e  "${BLUE}   change in file '${ORANGE}service.yaml${BLUE}' field '${ORANG
 
 SCONE="\$SCONE" envsubst < service.yaml.template > service.yaml
 
-sconectl apply -f service.yaml $verbose
+sconectl apply -f service.yaml $verbose $debug
 
 echo -e "${BLUE}Generating a mesh file with default key/value pairs in section 'env:':${NC}"
 
 SCONE="\$SCONE" envsubst < mesh-base.yaml.template > mesh-1.yaml
 
-sconectl apply -f mesh-1.yaml --print-defaults --file  mesh-2.yaml  $verbose > mesh-extended.yaml
+sconectl apply -f mesh-1.yaml --print-defaults --file  mesh-2.yaml  $verbose $debug 
 
-echo -e "${BLUE} Please edit section 'env:':${NC}"
+echo -e "${BLUE} Please edit section 'env:' - to speed up / automate${NC}"
 
-echo -e "${BLUE} After editing the file, execute the follow :${NC}"
+echo -e "${BLUE} We provide a patch file that we can just append at the end of the mesh file :${NC}"
 
-echo "sconectl apply -f mesh-2.yaml $verbose"
+SCONE="\$SCONE" envsubst < patch.yaml.template > patch.yaml
+cat  mesh-2.yaml patch.yaml > mesh-3.yaml
+
+sconectl apply -f mesh-3.yaml $verbose $debug
+
+echo -e "${BLUE}Uninstalling application in case it was previously installed:${NC} helm uninstall ${namespace_args} ${RELEASE}"
+echo -e "${BLUE} - this requires that 'kubectl' gives access to a Kubernetes cluster${NC}"
+
+helm uninstall $namespace_arg ${release} 2> /dev/null || true
+
+echo -e "${BLUE}install application:${NC} helm install ${namespace_args} ${RELEASE} target/helm/"
+
+helm install $namespace_arg ${release} target/helm/
+
+echo -e "${BLUE}Check the logs by executing:${NC} kubectl logs ${namespace_args} ${RELEASE}<TAB>"
+echo -e "${BLUE}Uninstall by executing:${NC} helm uninstall ${namespace_args} ${RELEASE}"

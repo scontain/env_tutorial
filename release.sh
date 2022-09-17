@@ -1,1 +1,2 @@
-export RELEASE="flaskredis"
+export RELEASE="env"
+

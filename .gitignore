@@ -6,3 +6,7 @@ service.yaml
 mesh.yaml
 mesh-1.yaml
 mesh-extended.yaml
+patch.yaml
+mesh-2.yaml
+mesh_out.yaml
+mesh-3.yaml
