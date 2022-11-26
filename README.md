@@ -11,7 +11,7 @@ This is a variant of the Flask-Based Application to show how to determine which 
 
    - `$APP_IMAGE_REPO`: the container image repo to which we push the generated container image 
    - `$APP_NAMESPACE`: the namespace used by SCONE CAS. By default we create a random namespace to avoid conflicts.
-   - `$SCONECTL_REPO`: the repo used for the sconectl images. By default this is `registry.scontain.com:5050/sconectl`
+   - `$SCONECTL_REPO`: the repo used for the sconectl images. By default this is `registry.scontain.com/sconectl`
    - `$RELEASE`: the name of the helm release. (We do not use this in this template file)
 
 2. These environment variables are set by the `run.sh` script. This script generates a new mesh file in which these environment variables are replaced by their values:
