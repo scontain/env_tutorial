@@ -8,14 +8,9 @@ export BLUE='\e[34m'
 export ORANGE='\e[33m'
 export NC='\e[0m' # No Color
 
+APP_NAMESPACE=""
 source release.sh || true # get release name
 
-if [ -z "$APP_NAMESPACE" ] ; then
-    export APP_NAMESPACE="$RELEASE-$RANDOM-$RANDOM"
-    echo -e "export APP_NAMESPACE=$RELEASE-$RANDOM-$RANDOM\n" >> release.sh  
-else 
-    echo "CAS Namespace already defined: $APP_NAMESPACE"
-fi
 
 DEFAULT_NAMESPACE="" # Default Kubernetes namespace to use
 export APP_IMAGE_REPO=${APP_IMAGE_REPO:=""} # Must be defined!
@@ -38,10 +33,14 @@ verbose=""
 debug_flag="--debug"
 debug_short_flag="-d"
 debug=""
+cas_flag="--cas"
+cas_namespace_flag="--cas-namespace"
 
 ns="$DEFAULT_NAMESPACE"
 repo="$APP_IMAGE_REPO"
 release="$RELEASE"
+export CAS="cas"
+export CAS_NAMESPACE="default"
 
 error_exit() {
   trap '' EXIT
@@ -74,11 +73,15 @@ usage ()
   echo "                  Enable verbose output"
   echo "    $debug_flag | debug_short_flag"
   echo "                  Create debug image instead of a production image"
+  echo "    $cas_flag"
+  echo "                  Set the name of the CAS service that we should use. Default is $CAS"
+  echo "    $cas_namespace_flag"
+  echo "                  Set the namespace of the CAS service that we should use. Default is $CAS_NAMESPACE"
   echo "    $help_flag"
   echo "                  Output this usage information and exit."
   echo ""
   echo "By default this uses the latest release of the SCONE Elements images. To use image from a different"
-  echo "repository (e.g., a local cache), set SCONECTL_REPO to the repo you want to use instead."
+  echo "repository (e.g., a local cache), set SCONECTL_REPO (=\"$SCONECTL_REPO\") to the repo you want to use instead."
   return
 }
 
@@ -121,6 +124,24 @@ while [[ "$#" -gt 0 ]]; do
       debug="--mode=debug"
       shift # past argument
       ;;
+    ${cas_flag})
+      export CAS="$2"
+      if [ ! -n "${CAS}" ]; then
+        usage
+        error_exit "Error: The cas name '$CAS' is invalid."
+      fi
+      shift # past argument
+      shift || true # past value
+      ;;
+    ${cas_namespace_flag})
+      export CAS_NAMESPACE="$2"
+      if [ ! -n "${CAS_NAMESPACE}" ]; then
+        usage
+        error_exit "Error: The cas namespace '$CAS_NAMESPACE' is invalid."
+      fi
+      shift # past argument
+      shift || true # past value
+      ;;
     $help_flag)
       usage
       exit 0
@@ -145,6 +166,18 @@ fi
 export APP_IMAGE_REPO="${repo}"
 export RELEASE="$release"
 
+if [ -z "$APP_NAMESPACE" ] ; then
+    export APP_NAMESPACE="$RELEASE-$RANDOM-$RANDOM"
+    echo -e "export APP_NAMESPACE=$RELEASE-$RANDOM-$RANDOM\n" >> release.sh  
+else 
+    echo "CAS Namespace already defined: $APP_NAMESPACE"
+fi
+
+if [  "${RELEASE}" == "" ]; then
+    usage
+    error_exit  "Error: You must specify a release using ${release_flag}."
+fi
+
 # Check to make sure all prerequisites are installed
 ./check_prerequisites.sh
 
@@ -168,15 +201,19 @@ SCONE="\$SCONE" envsubst < service.yaml.template > service.yaml
 
 sconectl apply -f service.yaml $verbose $debug
 
+echo -e "${BLUE}Determine the keys of CAS $CAS in namespace $CAS_NAMESPACE"
+
+source <(kubectl provision cas "$CAS" -n "$CAS_NAMESPACE" --print-public-keys)
+
 echo -e "${BLUE}Generating a mesh file with default key/value pairs in section 'env:':${NC}"
 
 SCONE="\$SCONE" envsubst < mesh-base.yaml.template > mesh-1.yaml
 
 sconectl apply -f mesh-1.yaml --print-defaults --file  mesh-2.yaml  $verbose $debug 
 
-echo -e "${BLUE} Please edit section 'env:' - to speed up / automate${NC}"
+echo -e "${BLUE} You coud edit section 'env:'${NC}"
 
-echo -e "${BLUE} We provide a patch file that we can just append at the end of the mesh file :${NC}"
+echo -e "${BLUE} To automate this, we provide a patch file that we can just append at the end of the mesh file :${NC}"
 
 SCONE="\$SCONE" envsubst < patch.yaml.template > patch.yaml
 cat  mesh-2.yaml patch.yaml > mesh-3.yaml

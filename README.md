@@ -1,18 +1,30 @@
 # Building a Confidential Flask-Based Application using `sconectl`
 
+## Motivation
+
+When building confidential applications, we need to connect multiple confidential services into one service mesh.
+In this context, we need to define lots of configuration parameters. To get a first draft regarding what parameters are needed,
+we can use option `--print-defaults` to emit all the environment variables that must or can be defined.
+
+We can then edit or patch these defaults. In this example, we just append a patch file to the emitted definitions: the values of the patch file overwrite the definitions of the emitted file.
+
+## Details
+
 This is a variant of the Flask-Based Application to show how to determine which key/value pairs we need to define in the mesh file.
 
 1. To do so, we first create a mesh file `mesh-base.yaml.template` that defines
 
-   - what CAS to use
+   - what CAS to use: you can specify the CAS instance by adding options `--cas` and `--cas-namespace` to the run script.
+     - default is `cas` in namespace `default`
+
    - which services to include in this mesh
 
-    We can configure this template using the following environment variables:
+    We can configure this template using the following environment variables or via command line flags:
 
-   - `$APP_IMAGE_REPO`: the container image repo to which we push the generated container image 
-   - `$APP_NAMESPACE`: the namespace used by SCONE CAS. By default we create a random namespace to avoid conflicts.
-   - `$SCONECTL_REPO`: the repo used for the sconectl images. By default this is `registry.scontain.com/sconectl`
-   - `$RELEASE`: the name of the helm release. (We do not use this in this template file)
+   - `$APP_IMAGE_REPO` / `--image_repo`: the container image repo to which we push the generated container image
+   - `$APP_NAMESPACE` / `--namespace`: the namespace used by SCONE CAS. By default we create a random namespace to avoid conflicts.
+   - `$SCONECTL_REPO` : the repo used for the sconectl images. By default this is `registry.scontain.com/sconectl`
+   - `$RELEASE` / `--release`: the name of the helm release. (We do not use this in this template file)
 
 2. These environment variables are set by the `run.sh` script. This script generates a new mesh file in which these environment variables are replaced by their values:
 
@@ -31,8 +43,4 @@ This is a variant of the Flask-Based Application to show how to determine which 
 
 6. We install the mesh using `helm install`
 
-
 Note that `run.sh` automates all these steps. By default, a mesh in `production` mode is generated. The script also permits to generate a `--debug` version.
-
-
-

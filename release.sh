@@ -1,2 +1,2 @@
-export RELEASE="env"
+export APP_NAMESPACE=env-12808-29977
 
