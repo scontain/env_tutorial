@@ -204,17 +204,19 @@ echo -e  "${BLUE}   change in file '${ORANGE}service.yaml${BLUE}' field '${ORANG
 
 SCONE="\$SCONE" envsubst < service.yaml.template > service.yaml
 
-sconectl apply -f service.yaml $verbose $debug
+sconectl apply -f service.yaml $verbose $debug  --set-version ${VERSION}
 
 echo -e "${BLUE}Determine the keys of CAS $CAS in namespace $CAS_NAMESPACE"
 
 source <(kubectl provision cas "$CAS" -n "$CAS_NAMESPACE" --print-public-keys)
 
+export CAS_URL="${CAS}.${CAS_NAMESPACE}"
+
 echo -e "${BLUE}Generating a mesh file with default key/value pairs in section 'env:':${NC}"
 
 SCONE="\$SCONE" envsubst < mesh-base.yaml.template > mesh-1.yaml
 
-sconectl apply -f mesh-1.yaml --print-defaults --file  mesh-2.yaml  $verbose $debug 
+sconectl apply -f mesh-1.yaml --print-defaults --file  mesh-2.yaml  $verbose $debug  --set-version ${VERSION}
 
 echo -e "${BLUE} You coud edit section 'env:'${NC}"
 
@@ -223,7 +225,7 @@ echo -e "${BLUE} To automate this, we provide a patch file that we can just appe
 SCONE="\$SCONE" envsubst < patch.yaml.template > patch.yaml
 cat  mesh-2.yaml patch.yaml > mesh-3.yaml
 
-sconectl apply -f mesh-3.yaml  --release "$RELEASE" $verbose $debug
+sconectl apply -f mesh-3.yaml  --release "$RELEASE" $verbose $debug --set-version ${VERSION}
 
 echo -e "${BLUE}Uninstalling application in case it was previously installed:${NC} helm uninstall ${namespace_args} ${RELEASE}"
 echo -e "${BLUE} - this requires that 'kubectl' gives access to a Kubernetes cluster${NC}"
