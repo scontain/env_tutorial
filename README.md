@@ -22,7 +22,7 @@ This is a variant of the Flask-Based Application to show how to determine which 
     We can configure this template using the following environment variables or via command line flags:
 
    - `$APP_IMAGE_REPO` / `--image_repo`: the container image repo to which we push the generated container image
-   - `$APP_NAMESPACE` / `--namespace`: the namespace used by SCONE CAS. By default we create a random namespace to avoid conflicts.
+   - `$APP_NAMESPACE` / `--namespace`: the policy namespace used by SCONE CAS. By default we create a random namespace to avoid conflicts.
    - `$SCONECTL_REPO` : the repo used for the sconectl images. By default this is `registry.scontain.com/sconectl`
    - `$RELEASE` / `--release`: the name of the helm release. (We do not use this in this template file)
 
