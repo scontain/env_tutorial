@@ -208,7 +208,7 @@ sconectl apply -f service.yaml $verbose $debug  --set-version ${VERSION}
 
 echo -e "${BLUE}Determine the keys of CAS $CAS in namespace $CAS_NAMESPACE"
 
-source <(kubectl provision cas "$CAS" -n "$CAS_NAMESPACE" --print-public-keys)
+source <(VERSION="" kubectl provision cas "$CAS" -n "$CAS_NAMESPACE" --print-public-keys)
 
 export CAS_URL="${CAS}.${CAS_NAMESPACE}"
 
