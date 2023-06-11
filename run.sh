@@ -217,7 +217,7 @@ echo -e "${BLUE}Generating a mesh file with default key/value pairs in section '
 
 SCONE="\$SCONE" envsubst < mesh-base.yaml.template > mesh-1.yaml
 
-sconectl apply -f mesh-1.yaml --print-defaults --file  mesh-2.yaml  $verbose $debug  --set-version ${VERSION}
+sconectl apply -f mesh-1.yaml --print-defaults --file  mesh-2.yaml  $verbose  --set-version ${VERSION}
 
 echo -e "${BLUE} You coud edit section 'env:'${NC}"
 
