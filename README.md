@@ -1,4 +1,21 @@
-# Building a Confidential Flask-Based Application using `sconectl`
+# Building a Confidential Service Mesh using `sconectl`
+
+## TL'DR
+
+```bash
+# In case you want to test a release candidate of `sconectl`, you can change the repo and the VERSION
+export SCONECTL_REPO=registry.scontain.com/cicd
+export VERSION=5.8.0-rc.25
+# if you want to use the latest stable release, ensure that these variables are not set:
+unset SCONECTL_REPO
+unset VERSION
+# cleanup the last state
+rm -rf release.sh target
+# define REPO to which you are # define REPO to which you are permitted to push container images
+REPO="<YOUR-REPO>"
+# execute all steps of this tutorial
+./run.sh -i "$REPO" --release secure-doc-management -v
+```
 
 ## Motivation
 
@@ -43,4 +60,4 @@ This is a variant of the Flask-Based Application to show how to determine which 
 
 6. We install the mesh using `helm install`
 
-Note that `run.sh` automates all these steps. By default, a mesh in `production` mode is generated. The script also permits to generate a `--debug` version.
+Note that `run.sh` automates all these steps. By default, a mesh in `production` mode is generated. The script generates a debug version by setting flag `--debug`.
