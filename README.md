@@ -16,14 +16,13 @@ rm -rf release.sh target
 # define REPO to which you are # define REPO to which you are permitted to push container images
 REPO="<YOUR-REPO>"
 # execute all steps of this tutorial
-./run.sh -i "$REPO" --release secure-doc-management -v
+./run.sh -i "$REPO" --release env-tutorial -v
 ```
 
 ## Motivation
 
 When building confidential applications, we need to connect multiple confidential services into one service mesh.
-In this context, we need to define lots of configuration parameters. To get a first draft regarding what parameters are needed,
-we can use option `--print-defaults` to emit all the environment variables that must or can be defined.
+In this context, we need to define lots of configuration parameters. To get a first draft regarding what parameters are needed, we can use option `--print-defaults` to emit all the environment variables that must or can be defined.
 
 We can then edit or patch these defaults. In this example, we just append a patch file to the emitted definitions: the values of the patch file overwrite the definitions of the emitted file.
 

@@ -4,6 +4,7 @@ set -e
 
 export VERSION=${VERSION:-latest}
 export CAS_VERSION=${CAS_VERSION:-$VERSION}
+export CAS_NAMESPACE=${CAS_NAMESPACE:="scone-system"}
 
 export RED='\e[31m'
 export BLUE='\e[34m'
@@ -42,7 +43,6 @@ ns="$DEFAULT_NAMESPACE"
 repo="$APP_IMAGE_REPO"
 release="$RELEASE"
 export CAS=${CAS:="cas"}
-export CAS_NAMESPACE=${CAS_NAMESPACE:="default"}
 
 error_exit() {
   trap '' EXIT
@@ -174,7 +174,8 @@ export RELEASE="$release"
 
 if [ -z "$APP_NAMESPACE" ] ; then
     export APP_NAMESPACE="$RELEASE-$RANDOM-$RANDOM"
-    echo -e "export APP_NAMESPACE=$RELEASE-$RANDOM-$RANDOM\n" >> release.sh  
+    echo -e "export APP_NAMESPACE=$APP_NAMESPACE\n" >> release.sh
+    echo "New CAS namespace: $APP_NAMESPACE"
 else 
     echo "Namespace used with CAS is already defined: $APP_NAMESPACE"
 fi
